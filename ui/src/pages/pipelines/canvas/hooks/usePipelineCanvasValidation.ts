@@ -41,6 +41,7 @@ export interface PipelineCanvasValidationIssue {
 export interface PipelineCanvasValidation {
   validation: ValidatePipelineResponse | undefined;
   invalidEdgeIds: Set<CanvasEdge["id"]>;
+  edgeValidationByEdgeId: Map<CanvasEdge["id"], EdgeValidation>;
   issues: PipelineCanvasValidationIssue[];
   isPending: boolean;
   isError: boolean;
@@ -118,13 +119,17 @@ export const usePipelineCanvasValidation = (): PipelineCanvasValidation => {
   return useMemo(() => {
     const edgeIdsByKey = new Map(state.edges.map((edge) => [getCanvasEdgeKey(edge), edge.id]));
     const invalidEdgeIds = new Set<CanvasEdge["id"]>();
+    const edgeValidationByEdgeId = new Map<CanvasEdge["id"], EdgeValidation>();
     for (const edge of data?.edges ?? []) {
       const edgeId = edgeIdsByKey.get(getEdgeValidationKey(edge));
-      if (edgeId !== undefined && edge.errors.some(isTransformIssue)) invalidEdgeIds.add(edgeId);
+      if (edgeId === undefined) continue;
+      edgeValidationByEdgeId.set(edgeId, edge);
+      if (edge.errors.some(isTransformIssue)) invalidEdgeIds.add(edgeId);
     }
     return {
       validation: data,
       invalidEdgeIds,
+      edgeValidationByEdgeId,
       issues: getCanvasValidationIssues(data, edgeIdsByKey),
       isPending: isPending || !isSettled,
       isError,

@@ -1,7 +1,7 @@
 import type { PropsWithChildren } from "react";
 
 import { styled } from "@linaria/react";
-import { useNavigate, useParams } from "@tanstack/react-router";
+import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
 
 import Chip, { ChipVariant } from "@galaxy-io/dls/chips/Chip";
 import { withTheme } from "@galaxy-io/dls/theme/GalaxyTheme";
@@ -16,6 +16,7 @@ import PipelineLayoutNavbarBackButton from "@/layouts/pipeline/PipelineLayoutNav
 import PipelineLayoutSidebar from "@/layouts/pipeline/PipelineLayoutSidebar";
 import { PipelineSidebarItem } from "@/layouts/pipeline/types";
 
+import { PipelineCanvasView } from "@/pages/pipelines/canvas/types";
 import { usePipelinePreviewVersion } from "@/pages/pipelines/hooks/usePipelinePreviewVersion";
 
 import { useRouteMatch } from "@/hooks/useRouteMatch";
@@ -93,6 +94,12 @@ const PipelineLayout = ({ children }: PropsWithChildren) => {
   const previewed = usePipelinePreviewVersion();
   const isPreview = previewed !== undefined;
 
+  const { isRouteMatch: isCanvasActive } = useRouteMatch({
+    route: "/pipelines/$id/canvas",
+    fuzzy: false,
+  });
+  const { view } = useSearch({ strict: false });
+  const isRoutesView = isCanvasActive && view === PipelineCanvasView.ROUTES;
   const { isRouteMatch: isHistoryActive } = useRouteMatch({
     route: "/pipelines/$id/history",
     fuzzy: false,
@@ -124,7 +131,7 @@ const PipelineLayout = ({ children }: PropsWithChildren) => {
         <PipelineLayoutNavbar />
         <ContentWrapper>
           <ContentIsland $isPreview={isPreview}>
-            {isPreview && (
+            {isPreview && !isRoutesView && (
               <PreviewChipOverlay>
                 <Chip label={`Version ${previewed.version}`} variant={ChipVariant.ERROR} />
               </PreviewChipOverlay>

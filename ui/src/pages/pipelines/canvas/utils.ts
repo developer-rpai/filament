@@ -1,8 +1,13 @@
+import type { JsonValue } from "@bufbuild/protobuf";
 import type { FitViewOptions } from "@xyflow/react";
 
 import type { Theme } from "@galaxy-io/dls/theme/types";
 
+import type { EdgeValidation } from "@/gen/ingestion/v1/capabilities_pb";
+import { ReadMode, WriteMode } from "@/gen/ingestion/v1/common_pb";
 import type { PipelineEdge } from "@/gen/ingestion/v1/pipelines_pb";
+
+import { isJsonObject } from "@/components/fields/utils";
 
 import {
   PIPELINE_CANVAS_EDGE_Z_INDEX,
@@ -15,7 +20,54 @@ import {
   PIPELINE_CANVAS_PANEL_INSET,
   PIPELINE_CANVAS_PANEL_WIDTH,
 } from "@/pages/pipelines/canvas/panel/constants";
-import type { CanvasEdge, CanvasNode } from "@/pages/pipelines/canvas/types";
+import type {
+  CanvasEdge,
+  CanvasNode,
+  PipelineCanvasEdgeTransform,
+} from "@/pages/pipelines/canvas/types";
+
+const intersectModes = (sets: ReadMode[][]): ReadMode[] => {
+  if (!sets.length) return [];
+  return sets
+    .slice(1)
+    .reduce((common, modes) => common.filter((mode) => modes.includes(mode)), sets[0] ?? []);
+};
+
+export interface PipelineCanvasEdgeModeOptions {
+  readModeOptions: ReadMode[];
+  writeModeOptions: WriteMode[];
+  effectiveReadMode: ReadMode;
+  effectiveWriteMode: WriteMode;
+}
+
+export const getEdgeModeOptions = (
+  verdict: EdgeValidation | undefined,
+  hasReadLevers: boolean,
+): PipelineCanvasEdgeModeOptions => ({
+  readModeOptions:
+    verdict && hasReadLevers
+      ? intersectModes(verdict.resources.map((resource) => resource.supportedReadModes))
+      : [],
+  writeModeOptions: verdict?.supportedWriteModes ?? [],
+  effectiveReadMode: verdict?.effectiveReadMode ?? ReadMode.UNSPECIFIED,
+  effectiveWriteMode: verdict?.effectiveWriteMode ?? WriteMode.UNSPECIFIED,
+});
+
+const getTransformEntryStepCount = (entry: JsonValue | undefined): number =>
+  entry !== undefined && isJsonObject(entry) && Array.isArray(entry.steps) ? entry.steps.length : 0;
+
+export const getTransformStepCount = (
+  transform: PipelineCanvasEdgeTransform | undefined,
+  resource: PipelineEdge["resource"],
+): number => {
+  const resources = transform?.resources;
+  if (resources === undefined || !isJsonObject(resources)) return 0;
+  if (resource !== "") return getTransformEntryStepCount(resources[resource]);
+  return Object.values(resources).reduce<number>(
+    (total, entry) => total + getTransformEntryStepCount(entry),
+    0,
+  );
+};
 
 export const getPipelineCanvasFitPadding = (
   showPanel: boolean,
