@@ -1,0 +1,145 @@
+version: 1
+name: fhir
+display_name: FHIR
+description: Read clinical resources from any FHIR R4 server (Patient, Observation, Condition, Encounter, MedicationRequest, AllergyIntolerance, Immunization, Procedure).
+# PLACEHOLDER LOGOS: official FHIR icon assets are not published yet. Galaxy team
+# to supply source-icon-fhir-dark.svg / source-icon-fhir-light.svg on cdn.getgalaxy.io.
+dark_logo_url: https://cdn.getgalaxy.io/sources/source-icon-fhir-dark.svg
+light_logo_url: https://cdn.getgalaxy.io/sources/source-icon-fhir-light.svg
+api_version: "r4"
+config:
+  base_url:
+    type: string
+    default: https://hapi.fhir.org/baseR4
+    help: FHIR base URL, e.g. https://hapi.fhir.org/baseR4
+connection:
+  base_url: "{{ config.base_url }}"
+  auth:
+    none: {}
+  headers:
+    Accept: application/fhir+json
+  timeout_seconds: 60
+  rate_limit:
+    requests_per_second: 5
+defaults:
+  method: GET
+  query:
+    _count: "100"
+  response:
+    records: $.entry
+resources:
+  - name: patients
+    path: /Patient
+    primary_key: ["id"]
+    fields:
+      id:
+        path: resource.id
+        type: string
+      last_updated:
+        path: resource.meta.lastUpdated
+        type: timestamptz
+        nullable: true
+      resource:
+        path: resource
+        type: json
+  - name: observations
+    path: /Observation
+    primary_key: ["id"]
+    fields:
+      id:
+        path: resource.id
+        type: string
+      last_updated:
+        path: resource.meta.lastUpdated
+        type: timestamptz
+        nullable: true
+      resource:
+        path: resource
+        type: json
+  - name: conditions
+    path: /Condition
+    primary_key: ["id"]
+    fields:
+      id:
+        path: resource.id
+        type: string
+      last_updated:
+        path: resource.meta.lastUpdated
+        type: timestamptz
+        nullable: true
+      resource:
+        path: resource
+        type: json
+  - name: encounters
+    path: /Encounter
+    primary_key: ["id"]
+    fields:
+      id:
+        path: resource.id
+        type: string
+      last_updated:
+        path: resource.meta.lastUpdated
+        type: timestamptz
+        nullable: true
+      resource:
+        path: resource
+        type: json
+  - name: medication_requests
+    path: /MedicationRequest
+    primary_key: ["id"]
+    fields:
+      id:
+        path: resource.id
+        type: string
+      last_updated:
+        path: resource.meta.lastUpdated
+        type: timestamptz
+        nullable: true
+      resource:
+        path: resource
+        type: json
+  - name: allergy_intolerance
+    path: /AllergyIntolerance
+    primary_key: ["id"]
+    fields:
+      id:
+        path: resource.id
+        type: string
+      last_updated:
+        path: resource.meta.lastUpdated
+        type: timestamptz
+        nullable: true
+      resource:
+        path: resource
+        type: json
+  - name: immunizations
+    path: /Immunization
+    primary_key: ["id"]
+    fields:
+      id:
+        path: resource.id
+        type: string
+      last_updated:
+        path: resource.meta.lastUpdated
+        type: timestamptz
+        nullable: true
+      resource:
+        path: resource
+        type: json
+  - name: procedures
+    path: /Procedure
+    primary_key: ["id"]
+    fields:
+      id:
+        path: resource.id
+        type: string
+      last_updated:
+        path: resource.meta.lastUpdated
+        type: timestamptz
+        nullable: true
+      resource:
+        path: resource
+        type: json
+discovery:
+  mode: static
+  default_resources: [patients, observations, conditions, encounters, medication_requests]
