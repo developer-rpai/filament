@@ -39,22 +39,22 @@ medication requests. The other three resources are opt-in.
 
 ## Modes
 
-All resources support full reads. If interrupted, a full read of a top-level
-resource resumes after its last completed page.
-
-No resource supports incremental reads yet. Incremental sync on
-`last_updated` is planned: it needs the `_lastUpdated=ge<timestamp>` search
-parameter, which the engine does not prefix today. Until then, use full reads.
+All resources support full reads and incremental reads. Incremental sync
+tracks `last_updated` (`meta.lastUpdated`) per resource and re-requests with
+`_lastUpdated=ge<timestamp>` — the `ge` prefix carries "greater or equal"
+semantics; a bare timestamp would mean "equal" and silently return the wrong
+result set. A 5-minute overlap window re-fetches recently updated records so
+retroactive updates are not missed. If interrupted, a full read of a
+top-level resource resumes after its last completed page.
 
 ## Behavior
 
 - **Auth**: none. v1 targets unauthenticated servers such as the public HAPI
   test server. Authenticated servers (OAuth2 client credentials, SMART
   Backend Services) are a planned follow-up.
-- **Pagination**: each resource currently reads one page (`_count=100`).
-  Multi-page walks need the engine to select the Bundle `link` entry with
-  `relation="next"`, which is pending. Results beyond the first page are not
-  fetched in this draft.
+- **Pagination**: each resource walks every page (`_count=100` per request)
+  by following the Bundle `link` entry whose `relation` is `"next"`. The walk
+  ends on the page with no `next` link.
 - **Rate limiting**: five requests per second, a polite default for the shared
   public HAPI server. Lower it further for smoke tests; do not backfill
   against the public server.
