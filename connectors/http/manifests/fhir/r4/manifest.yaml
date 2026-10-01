@@ -24,7 +24,9 @@ defaults:
   query:
     _count: "100"
   response:
-    records: $.entry
+    # A searchset Bundle can carry an OperationOutcome entry (search.mode:
+    # "outcome") alongside matches; only match entries project to rows.
+    records: '$.entry.#(search.mode=="match")#'
   # FHIR Bundle.link is an array of {"relation","url"} objects; follow the
   # entry whose relation is "next".
   pagination:

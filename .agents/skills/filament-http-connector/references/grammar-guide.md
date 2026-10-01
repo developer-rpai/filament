@@ -280,7 +280,7 @@ emits only selected resources. Account for that behavior and parent-scoped keys.
 ```yaml
 pagination: { link: next }                # Link response header, rel="next"
 pagination: { next_url: paging.next }     # full next-page URL in the response (bare dot-path, no $.)
-pagination: { next_url: link[relation=next].url }  # [k=v] selects the first array element whose k renders to v
+pagination: { next_url: "link[relation=next].url" }  # [k=v] selects the first array element whose k renders to v
 pagination:
   cursor:
     response: response_metadata.next_cursor   # where the cursor appears in the response
